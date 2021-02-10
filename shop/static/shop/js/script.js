@@ -232,6 +232,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }, 4000);
     }
 
+  
 
     function sendForm(form) {
         form.querySelector('button').addEventListener('click', (e) => {
@@ -245,23 +246,44 @@ window.addEventListener('DOMContentLoaded', () => {
             
 
             const formData = new FormData(form);
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', '');
-            xhr.setRequestHeader("X-CSRFToken", form.querySelector("input[name='csrfmiddlewaretoken']").value); 
-            xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest"); 
-            xhr.send(formData);
-            xhr.addEventListener('load', () => {
-                if (xhr.status === 200) {
-                    console.log(xhr.response);
-                    showMessageModal(alerts.success);
-                    loadingMessage.remove();
-                    form.reset();
-                    
-                } else {
-                    showMessageModal(alerts.error);
-                    loadingMessage.remove();
+
+            fetch('', {
+                method: "POST", 
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+
                 }
-            })    
+            })
+            .then(data => data.text())
+            .then((data) => {
+                console.log(data);
+                showMessageModal(alerts.success);
+            }).catch(() => {
+                showMessageModal(alerts.error);
+            }).finally(() => {
+                loadingMessage.remove();
+                form.reset()
+            })
+
+
+            // const xhr = new XMLHttpRequest();
+            // xhr.open('POST', '');
+            // xhr.setRequestHeader("X-CSRFToken", form.querySelector("input[name='csrfmiddlewaretoken']").value); 
+            // xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest"); 
+            // xhr.send(formData);
+            // xhr.addEventListener('load', () => {
+            //     if (xhr.status === 200) {
+            //         console.log(xhr.response);
+            //         showMessageModal(alerts.success);
+            //         loadingMessage.remove();
+            //         form.reset();
+                    
+            //     } else {
+            //         showMessageModal(alerts.error);
+            //         loadingMessage.remove();
+            //     }
+            // })    
 
         });
     }

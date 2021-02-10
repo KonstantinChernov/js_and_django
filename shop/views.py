@@ -10,7 +10,7 @@ class IndexView(View):
     def post(self, request):
 
         if request.is_ajax():
-            print(request.POST.get('name'))
+            print(request.POST)
 
             return JsonResponse(request.POST, status=200)
         return render(request, 'shop/index.html')
