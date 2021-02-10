@@ -170,33 +170,26 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    new MenuItem(
-        '/static/shop/img/tabs/vegy.jpg', 
-        'vegy',
-        'Меню "Фитнес"',
-        'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-        '229', 
-        'menu__item'
-        ).render(menuContainer);
-    
-    new MenuItem(
-        '/static/shop/img/tabs/elite.jpg', 
-        'elite',
-        'Меню “Премиум”',
-        'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-        '550'
-        ).render(menuContainer);
+    fetch('', {
+        method: "GET", 
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+        }
+    })
+    .then(data => data.json())
+    .then((data) => {
+        for (let card of data.cards) {
+            new MenuItem(
+                card.img, 
+                card.alt,
+                card.title,
+                card.description,
+                card.price, 
+                ).render(menuContainer);
+        };
+    })
 
-    new MenuItem(
-        '/static/shop/img/tabs/post.jpg', 
-        'post',
-        'Меню "Постное"',
-        'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
-        '430'
-        ).render(menuContainer);
-
-
-    // Forms AJAX (xhr)
+    // Forms AJAX
 
     const forms = document.querySelectorAll('form');
     forms.forEach(form => sendForm(form));
@@ -232,7 +225,6 @@ window.addEventListener('DOMContentLoaded', () => {
         }, 4000);
     }
 
-  
 
     function sendForm(form) {
         form.querySelector('button').addEventListener('click', (e) => {
