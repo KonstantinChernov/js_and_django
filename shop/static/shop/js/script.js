@@ -170,24 +170,27 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    fetch('', {
-        method: "GET", 
-        headers: {
-            "X-Requested-With": "XMLHttpRequest",
+    const getData = async (url) => {
+        const res = await fetch(url, {
+            method: "GET", 
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+            }
+        });
+        if (!res.ok) {
+            throw new Error(`Fetch Error ${res.status}`)
         }
-    })
-    .then(data => data.json())
-    .then((data) => {
-        for (let card of data.cards) {
-            new MenuItem(
-                card.img, 
-                card.alt,
-                card.title,
-                card.description,
-                card.price, 
-                ).render(menuContainer);
-        };
-    })
+        return await res.json()
+    }
+
+
+    getData('')
+    .then(
+        data => {
+            data.cards.forEach(({img, alt, title, description, price}) =>
+                new MenuItem(img, alt, title, description, price).render(menuContainer)
+            )}
+    );
 
     // Forms AJAX
 
@@ -226,6 +229,20 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
 
+    const postData = async (url, data) => {
+        const res = await fetch(url, {
+            method: "POST", 
+            body: data,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "Content-Type": "application/json"
+            }
+        });
+
+        return await res.json()
+    }
+
+
     function sendForm(form) {
         form.querySelector('button').addEventListener('click', (e) => {
             e.preventDefault();
@@ -238,16 +255,9 @@ window.addEventListener('DOMContentLoaded', () => {
             
 
             const formData = new FormData(form);
+            const jsonData = JSON.stringify(Object.fromEntries((Object.entries(formData))))
 
-            fetch('', {
-                method: "POST", 
-                body: formData,
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest",
-
-                }
-            })
-            .then(data => data.text())
+            postData('', jsonData)
             .then((data) => {
                 console.log(data);
                 showMessageModal(alerts.success);
@@ -279,5 +289,219 @@ window.addEventListener('DOMContentLoaded', () => {
 
         });
     }
+
+    // Slider
+
+    const slider = document.querySelector('.offer__slider');
+    const slides = document.querySelectorAll(".offer__slide");
+
+    const sliderWindow = document.querySelector('.offer__slider-wrapper');
+    const slidesRow = document.querySelector('.offer__slider-inner');
+                                                                                                          
+    const slideWidth = window.getComputedStyle(sliderWindow).width;
+
+    const prevSlideButton = document.querySelector(".offer__slider-prev");
+    const nextSlideButton = document.querySelector(".offer__slider-next")
+    const currentSlide = document.querySelector("#current");
+    const totalSlides = document.querySelector("#total");
+
+    slider.style.position = "relative";
+    const dots = document.createElement('ul');
+    dots.style.cssText = `
+                    position: absolute;
+                    right: 0;
+                    bottom: 0;
+                    left: 0;
+                    z-index: 15;
+                    display: flex;
+                    justify-content: center;
+                    margin-right: 15%;
+                    margin-left: 15%;
+                    list-style: none;
+    `;
+    slider.append(dots);
+    for(let i = 0; i < slides.length; i++) {
+        const dot = document.createElement('li');
+        dot.style.cssText = `
+                    box-sizing: content-box;
+                    flex: 0 1 auto;
+                    width: 30px;
+                    height: 6px;
+                    margin-right: 3px;
+                    margin-left: 3px;
+                    cursor: pointer;
+                    background-color: #fff;
+                    background-clip: padding-box;
+                    border-top: 10px solid transparent;
+                    border-bottom: 10px solid transparent;
+                    opacity: .5;
+                    transition: opacity .6s ease;
+        `;
+        dot.setAttribute('data-slide-number', i + 1);
+        dots.append(dot);
+    }
+
+    slides.forEach(slide => slide.style.width = slideWidth);
+    slidesRow.style.width = 100 * slides.length + "%";
+    slidesRow.style.display = "flex";
+    slidesRow.style.transition = "0.5s";
+
+    sliderWindow.style.overflow = "hidden";
+    
+    const createdDots = document.querySelectorAll('[data-slide-number]');
+
+    createdDots.forEach(item => item.addEventListener('click', () => highlightDotAndShowSlide(parseInt(item.getAttribute('data-slide-number')))));
+
+    prevSlideButton.addEventListener('click', () => {
+        showSlide(numberOfSlide -= 1);
+        highlightDot(numberOfSlide);
+    });
+    nextSlideButton.addEventListener('click', () => {
+        showSlide(numberOfSlide += 1);
+        highlightDot(numberOfSlide);
+    });
+
+
+    function highlightDot(id) {
+        createdDots.forEach(item => item.style.opacity = '0.5');
+        createdDots[id - 1].style.opacity = '1';
+    }
+
+    function showSlide(num) {
+        if (num < 1) {
+            num = slides.length;
+            numberOfSlide = slides.length;
+        } else if (num > slides.length) {
+            num = 1;
+            numberOfSlide = 1;
+        }
+        currentSlide.innerText = getZero(num); 
+        slidesRow.style.transform = `translate(${-parseInt(slideWidth) * (num-1)}px, 0px)`;
+    }
+
+    function highlightDotAndShowSlide(num) {
+        showSlide(num);
+        highlightDot(num);
+    }
+
+    let numberOfSlide = 1;
+    totalSlides.innerText = getZero(slides.length); 
+    highlightDotAndShowSlide(numberOfSlide);
+
+    // Calculator
+
+    const result = document.querySelector(".calculating__result span");
+
+    let gender, height, weight, age, activity;
+
+    for (let i = 0; i < localStorage.length; i++) {
+        let key = localStorage.key(i);
+        switch (key) {
+            case 'gender':
+                gender = localStorage.getItem('gender');
+                break;
+            case 'height':
+                height = localStorage.getItem('height');
+                document.querySelector('#height').value = height;
+                break;
+            case 'weight':
+                weight = localStorage.getItem('weight');
+                document.querySelector('#weight').value = weight;
+                break;
+            case 'age':
+                age = localStorage.getItem('age');
+                document.querySelector('#age').value = age;
+                break;
+            case 'activity':
+                activity = localStorage.getItem('activity');
+                break;
+        }
+    }
+
+    setDefaultClickParameter('gender');
+    setDefaultClickParameter('activity');
+
+
+    function setDefaultClickParameter(parameter) {
+        const choices = document.querySelectorAll(`#${parameter} div`);
+        if (localStorage.getItem(parameter)) {
+            choices.forEach(item => {
+                if (item.getAttribute('data-info') == localStorage.getItem(parameter)) {
+                    choices.forEach(item => item.classList.remove('calculating__choose-item_active'));
+                    item.classList.add('calculating__choose-item_active');
+                }
+            })
+        }
+    }
+
+
+
+
+    function getCalories() {
+        if (!gender || !height || !weight || !age || !activity) {
+            result.textContent = '!!';
+            return;
+        }
+
+        if (gender === 'male') {
+            result.textContent = Math.round((9.99 * weight + 6.25 * height - 4.92 * age + 5) * activity);
+        } else {
+            result.textContent = Math.round((9.99 * weight + 6.25 * height - 4.92 * age - 161) * activity);
+        }
+    }
+
+    function getClickParameter(parameter) {
+        const choices = document.querySelectorAll(`#${parameter} div`);
+        choices.forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (parameter == 'gender') {
+                   gender = e.target.getAttribute('data-info');
+                } else if (parameter == 'activity') {
+                    activity = parseFloat(e.target.getAttribute('data-info'));
+                }
+                localStorage.setItem(parameter, e.target.getAttribute('data-info'));
+                choices.forEach(item => item.classList.remove('calculating__choose-item_active'));
+                item.classList.add('calculating__choose-item_active');
+                getCalories() 
+            })
+        })
+
+    }
+
+    function getInputParameter(parameter) {
+        const inp = document.querySelector(`#${parameter}`);
+        inp.addEventListener('input', () => {
+                if (inp.value.match(/\D/g)) {
+                    inp.style.border = '1px solid red';
+                } else {
+                    inp.style.border = '';
+                }
+                switch (parameter) {
+                    case 'height':
+                        height = +inp.value;
+                        localStorage.setItem('height', height);
+                        break;
+                    case 'age':
+                        age = +inp.value;
+                        localStorage.setItem('age', age);
+                        break;
+                    case 'weight':
+                        weight = +inp.value;
+                        localStorage.setItem('weight', weight);
+                        break;
+
+                }
+                
+                getCalories();
+            });
+    }
+       
+    getCalories();
+
+    getClickParameter('gender');
+    getClickParameter('activity');
+    getInputParameter('height');
+    getInputParameter('age');
+    getInputParameter('weight');
 
 });

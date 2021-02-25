@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.views import View
 from django.http import JsonResponse
 
+from shop.models import Subscribers
+
 
 class IndexView(View):
     def get(self, request):
@@ -42,7 +44,10 @@ class IndexView(View):
 
     def post(self, request):
         if request.is_ajax():
-            print(request.POST)
-
+            name = request.POST.get('name')
+            phone = request.POST.get('phone')
+            Subscribers.objects.create(name=name, phone=phone)
+            all_db = Subscribers.objects.all()
+            print(all_db)
             return JsonResponse(request.POST, status=200)
         return render(request, 'shop/index.html')
