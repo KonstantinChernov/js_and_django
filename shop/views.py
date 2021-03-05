@@ -46,6 +46,7 @@ class IndexView(View):
         if request.is_ajax():
             name = request.POST.get('name')
             phone = request.POST.get('phone')
+            print(request.POST)
             Subscribers.objects.create(name=name, phone=phone)
             all_db = Subscribers.objects.all()
             print(all_db)
